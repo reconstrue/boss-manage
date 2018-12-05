@@ -158,18 +158,47 @@ class AutoScalingGroup(object):
                                           ScalingProcesses = ['HealthCheck'])
 
     def save_tags(self):
-        pass # TODO Luis
-        # Create tags to store current self.min / self.max / self.desired
-        # use self.client to interact with AWS
-
+        self.client.create_or_update_tags(
+            Tags=[
+                {
+                    'ResourceID': self.name,
+                    'ResourceType': 'auto-scaling-group',
+                    'Key' : 'min'
+                    'Value': self.min,
+                },
+                {
+                    'ResourceID': self.name,
+                    'ResourceType': 'auto-scaling-group',
+                    'Key' : 'max'
+                    'Value': self.max,
+                },
+                {
+                    'ResourceID': self.name,
+                    'ResourceType': 'auto-scaling-group',
+                    'Key' : 'desired'
+                    'Value': self.desired,
+                },
+            ]
+        )
         # Non-standard situations to think about
-        # Saving tags when tags already exist and have different values
-        # Loading tags when self.min / self.max / self.desired are not 0/0/0
-        # Saving tags when self.min / self.max / self.desired are already 0/0/0
+        # Saving tags when tags already exist and have different values A/ Hmmmm
+        # Loading tags when self.min / self.max / self.desired are not 0/0/0 A/ Solved by used command
+        # Saving tags when self.min / self.max / self.desired are already 0/0/0 Solved by used command
     def load_tags(self):
-        pass # TODO Luis
-        # set self.min / self.max / self.desired based on tags in self.definition
-        # Should there be a call to AWS to remove the tags?
+        tags = self.client.describe_tags(
+            Filters=[
+                {
+                    'Name' : 'auto-scaling-group',
+                    'Values' : [
+                        self.name
+                    ],
+                },
+            ]
+        )
+        self.min = tags('Tags')[0]('Value')
+        self.max = tags('Tags')[1]('Value')
+        self.desired = tags('Tags')[2]('Value')
+        # Good news the update_create call will automatically replace the tags 
 
 #Executed actions
 def startInstances(bosslet_config):
